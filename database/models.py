@@ -11,14 +11,16 @@ class UserModel(Base):
 
 
     id = Column(Integer, primary_key=True, index=True)
+    full_name = Column(String(256), nullable=False)
+    email = Column(String(255), unique=True, nullable=False, index=True)
     telegram_id = Column(Integer, unique=True, index=True, nullable=False)
     created_at = Column(DateTime, server_default=func.now())
 
-    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan")
+    tasks = relationship("TaskModel", back_populates="user", cascade="all, delete-orphan")
 
 
 
-class Task(Base):
+class TaskModel(Base):
     __tablename__ = "tasks"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -29,4 +31,4 @@ class Task(Base):
     created_at = Column(DateTime, server_default=func.now())
     due_date = Column(DateTime, nullable=True)
 
-    user = relationship("User", back_populates="tasks")
+    user = relationship("UserModel", back_populates="tasks")

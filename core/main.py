@@ -2,6 +2,7 @@ from telebot.types import ReplyKeyboardMarkup, KeyboardButton
 from database.base import engine, Base, get_db
 from database.models import UserModel, TaskModel
 from telebot import TeleBot, apihelper, telebot
+from decouple import config
 import re
 
 
@@ -14,7 +15,7 @@ apihelper.proxy = {
 }
 
 
-bot = telebot.TeleBot("8541091530:AAFcjlrZeH9Myl1Y8enCGcT-tRW8Hvz5NlY")
+bot = telebot.TeleBot(config("Token"))
 
 @bot.message_handler(commands=["start"])
 def start(message):
@@ -109,5 +110,44 @@ def ask_email(message):
     db.add(new_user)
     db.commit()
     bot.send_message(message.chat.id, "Registration completed successfully. Welcome!")
+
+
+
+def ensure_registered(message, db):
+    telegram_id = message.from_user.id
+    user = db.query(UserModel).filter_by(telegram_id=telegram_id).first()
+
+    if not user:
+        bot.reply_to(message, "Please send register command to register yourself, you are not verified yet")
+        return None
+    
+    return user
+
+
+
+@bot.message_handler(commands=['Add'])
+def add_task(message):
+    db = next(get_db())
+
+    user = ensure_registered(message, db)
+    if user is None:
+        return 
+    
+    task_text = message.text.replace("/add", "").strip()
+    if not task_text:
+        bot.reply_to(message, "Please enter your task:")
+        return 
+    
+    new_task = TaskModel(
+        user_id=user.id,
+        title=task_text,
+        priority=3,
+        is_done=False
+    )
+    db.add(new_task)
+    db.commit()
+
+    bot.reply_to(message, f"Task {task_text} added successfully.")
+
 
 bot.infinity_polling()

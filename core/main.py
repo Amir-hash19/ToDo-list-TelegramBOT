@@ -153,8 +153,7 @@ def add_task(message):
 
 
 
-
-bot.message_handler(lambda m: m.text == "My_Tasks")
+@bot.message_handler(func=lambda m: m.text == "My_Tasks")
 def my_tasks(message):
     db = SessionLocal()
     user_id = message.from_user.id
@@ -178,7 +177,7 @@ def my_tasks(message):
         status = "✓" if t.is_done else "✗"
         text += f"- {t.title} [{status}] (Priority: {t.priority})\n"
     markup = ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(KeyboardButton("Add Task"))
+    markup.add(KeyboardButton("Add_Task"))
     markup.add(KeyboardButton("Back"))
 
     bot.send_message(message.chat.id, text, reply_markup=markup)
